@@ -48,12 +48,19 @@ BUILDING_COORDS = {
     "Tory": (53.52791599518946, -113.52198425766233),
     "FAB": (53.524453, -113.520023),
     "Old Arts": (53.526759, -113.52243),
-    "MEC": (53.527809, -113.527898)
+    "MEC": (53.527809, -113.527898),
+    "UCOMM": (53.52566309344302, -113.52333876447742),
+    "Sperber": (53.52223941490952, -113.52654564888937),
+    "Biosci": (53.52914050410567, -113.52559957300794)
 }
 
-ALIASES = {
-    "mech e": "MEC",
+BUILDING_ALIASES = {
+    "MEC": ["mech e", "mec e"],
+    "Hub Mall": ["painting studios", "below hub"],
+    "UCOMM": ["ucom", "ucommons", "university commons"],
 }
+
+ALIASES = {alias: building for building, aliases in BUILDING_ALIASES.items() for alias in aliases}
 
 BUILDING_COL = "Which building(s) do you usually crash in?"
 building_rows = []
