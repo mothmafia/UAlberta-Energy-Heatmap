@@ -3,6 +3,7 @@ import folium
 from folium.plugins import HeatMap
 import requests
 import time
+from rapidfuzz import process
 
 # loading data from form
 CSV_URL = ( 
@@ -45,6 +46,13 @@ BUILDING_COORDS = {
     "ECHA": (53.52116705153968, -113.52643514131711),
     "Business": (53.52751234063427, -113.52187859997862),
     "Tory": (53.52791599518946, -113.52198425766233),
+    "FAB": (53.524453, -113.520023),
+    "Old Arts": (53.526759, -113.52243),
+    "MEC": (53.527809, -113.527898)
+}
+
+ALIASES = {
+    "mech e": "MEC",
 }
 
 BUILDING_COL = "Which building(s) do you usually crash in?"
@@ -54,7 +62,24 @@ for _, row in df.iterrows():
     if pd.notna(cell):
         for b in str(cell).split(","):
             b = b.strip()
-            match = next((k for k in BUILDING_COORDS if k.lower() == b.lower()), None)
+            b_lower = b.lower()
+
+            # exact match
+            match = next((k for k in BUILDING_COORDS if k.lower() == b_lower), None)
+
+            # alias match
+            if not match:
+                match = next((ALIASES[a] for a in ALIASES if a in b_lower), None)
+                if match:
+                    print(f"alias matched '{b}' to '{match}'")
+            
+            # fuzzy match
+            if not match:
+                result = process.extractOne(b, BUILDING_COORDS.keys())
+                if result and result[1] >= 80:
+                    match = result[0]
+                    print(f"fuzzy matched '{b}' to '{match}' ({result[1]:.0f}%)")
+
             if match:
                 building_rows.append(match)
             else:
