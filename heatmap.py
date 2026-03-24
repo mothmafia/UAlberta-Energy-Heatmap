@@ -86,3 +86,19 @@ HeatMap(
     min_opacity = 0.4,
     gradient = {0.2: "#E6FAFA", 0.5: "#FEE090", 0.8: "#F46d43", 1.0:"#D73027"}
 ).add_to(m)
+
+# markers with hover tooltips
+for building, (lat,lng) in BUILDING_COORDS.items():
+    count = counts.get(building, 0)
+    folium.CircleMarker(
+        location = [lat, lng],
+        radius = 6,
+        color = "white",
+        fill = True,
+        fill_color = "#333",
+        fill_opacity = 0.8,
+        tooltip = f"<b>{building}</b><br>{count} responses",
+    ).add_to(m)
+
+m.save("campus_heatmap.html")
+print("saved")
