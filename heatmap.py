@@ -66,3 +66,23 @@ for _, row in df.iterrows():
 # itensity / weight on the heatmap
 counts = pd.Series(building_rows).value_counts()
 print("counts:\n", counts)
+
+# create map
+m = folium.Map(
+    location=[53.52378469455345, -113.52631224576302],
+    zoom_start = 16,
+    tiles="OpenStreetMap",
+)
+
+heat_data = [
+    [BUILDING_COORDS[b][0], BUILDING_COORDS[b][1], count]
+    for b, count in counts.items()
+]
+
+HeatMap(
+    heat_data,
+    radius = 35,
+    blur = 20,
+    min_opacity = 0.4,
+    gradient = {0.2: "#E6FAFA", 0.5: "#FEE090", 0.8: "#F46d43", 1.0:"#D73027"}
+).add_to(m)
