@@ -2,6 +2,11 @@ import pandas as pd
 import requests
 import time
 from rapidfuzz import process
+import json
+
+# load geocache
+with open("geocache.json", "r") as f:
+    geocache = json.load(f)
 
 # loading data from form
 CSV_URL = ( 
@@ -14,6 +19,15 @@ print("data loaded:", df.shape)
 
 # handle Other building responses with Nominatim for coords
 def geocode_building(name):
+    # check cache
+    if name in geocache:
+        if geocache[name] is None:
+            print(f"skip cached unresolvable: '{name}'")
+            return None
+        print(f"cached '{name}'")
+        return tuple(geocache[name])
+    
+    # call Nominatim, if not cached
     query = f"{name} University of Alberta Edmonton"
     time.sleep(1)
     response = requests.get(
@@ -25,12 +39,20 @@ def geocode_building(name):
     if results:
         lat = float(results[0]["lat"])
         lng = float(results[0]["lon"])
-        print(f"geocoded '{name} to ({lat}, {lng})")
+        print(f"geocoded '{name}' to ({lat}, {lng})")
+        geocache[name] = [lat, lng]
+        coords = (lat, lng)
         return (lat, lng)
-    
     else:
         print(f"could not geocode: '{name}'")
-        return None
+        geocache[name] = None
+        coords = None
+    
+    # save updated cache
+    with open("geocache.json", "w") as f:
+        json.dump(geocache, f, indent=4)
+
+    return coords
 
 # building coords
 BUILDING_COORDS = {
@@ -49,7 +71,7 @@ BUILDING_COORDS = {
     "MEC": (53.527809, -113.527898),
     "UCOMM": (53.52566309344302, -113.52333876447742),
     "Sperber": (53.52223941490952, -113.52654564888937),
-    "BIOSCI": (53.52914050410567, -113.52559957300794)
+    "BioSci": (53.52914050410567, -113.52559957300794)
 }
 
 BUILDING_ALIASES = {
