@@ -1,0 +1,36 @@
+name: Update Heatmap
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas folium requests rapidfuzz
+
+      - name: Generate heatmap
+        run: python3 map.py
+
+      - name: Commit and push updated HTML
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add campus_heatmap.html geocache.json
+          git diff --cached --quiet || git commit -m "chore: auto-update heatmap"
+          git push
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v2
