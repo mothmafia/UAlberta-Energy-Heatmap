@@ -16,20 +16,28 @@ if active_coords:
 
 # title overlay
 title_html = """
-<div style="
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    background: white;
-    padding: 10px 24px;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    font-family: sans-serif;
-    text-align: center;
-">
-    <div style="font-size: 16px; font-weight: 600; color: #345435; letter-spacing: 0.3px;">
+<style>
+    .title-card {
+        position: fixed;
+        top: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background: white;
+        padding: 10px 24px 30px 24px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        font-family: sans-serif;
+        text-align: center;
+        transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .title-card:hover {
+        top: 0px;
+    }
+</style>
+<div class="title-card">
+    <div style="font-size: 16px; font-weight: 600; color: #223823; letter-spacing: 0.3px;">
         UAlberta Energy Map
     </div>
     <div style="font-size: 11px; color: #999; margin-top: 3px;">
