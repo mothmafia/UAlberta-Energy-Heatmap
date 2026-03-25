@@ -31,9 +31,16 @@ title_html = """
         text-align: center;
         transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
+        animation: welcomeSlide 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     .title-card:hover {
         top: 0px;
+    }
+    @keyframes welcomeSlide {
+        0% { top: -60px; }
+        20% { top: 0px; }
+        70% { top: 0px; }
+        100% { top: -60px; }
     }
 </style>
 <div class="title-card">
@@ -46,6 +53,44 @@ title_html = """
 </div>
 """
 m.get_root().html.add_child(folium.Element(title_html))
+
+# legend overlay
+legend_html = """
+<style>
+    .legend-card {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: rgba(255,255,255,0.75);
+        padding: 8px 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        font-family: sans-serif;
+    }
+    .legend-bar {
+        width: 120px;
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(to right, #c9b8f5, #89a4f7, #f4a89a, #f5c842);
+    }
+    .legend-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        color: #999;
+        margin-top: 4px;
+    }
+</style>
+<div class="legend-card">
+    <div class="legend-bar"></div>
+    <div class="legend-labels">
+        <span>low</span>
+        <span>high</span>
+    </div>
+</div>
+"""
+m.get_root().html.add_child(folium.Element(legend_html))
 
 heat_data = [
     [BUILDING_COORDS[b][0], BUILDING_COORDS[b][1], count]
