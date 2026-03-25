@@ -1,6 +1,7 @@
 import folium
+import pandas as pd
 from folium.plugins import HeatMap
-from heatmap import counts, BUILDING_COORDS
+from heatmap import counts, BUILDING_COORDS, df
 
 # create map
 m = folium.Map(
@@ -10,9 +11,16 @@ m = folium.Map(
 )
 
 # dynamically fit buildings
-active_coords = [BUILDING_COORDS[b] for b in counts.index if b in BUILDING_COORDS]
-if active_coords:
-    m.fit_bounds(active_coords)
+lats = [BUILDING_COORDS[b][0] for b in counts.index if b in BUILDING_COORDS]
+lngs = [BUILDING_COORDS[b][1] for b in counts.index if b in BUILDING_COORDS]
+
+padding = 0.004
+south, north = min(lats) - padding, max(lats) + padding
+west, east = min(lngs) - padding, max(lngs) + padding
+
+m.fit_bounds([[south, west], [north, east]])
+m.options["maxBounds"] = [[south, west], [north, east]]
+
 
 # title overlay
 title_html = """
@@ -29,9 +37,9 @@ title_html = """
         box-shadow: 0 2px 12px rgba(0,0,0,0.1);
         font-family: sans-serif;
         text-align: center;
-        transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
-        animation: welcomeSlide 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: welcomeSlide 3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .title-card:hover {
         top: 0px;
@@ -54,10 +62,11 @@ title_html = """
 """
 m.get_root().html.add_child(folium.Element(title_html))
 
+last_updated = pd.to_datetime(df["Timestamp"]).max().strftime("%b %d, %Y")
 # legend overlay
-legend_html = """
+legend_html = f"""
 <style>
-    .legend-card {
+    .legend-card {{
         position: fixed;
         bottom: 20px;
         left: 20px;
@@ -67,20 +76,26 @@ legend_html = """
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         font-family: sans-serif;
-    }
-    .legend-bar {
+    }}
+    .legend-bar {{
         width: 120px;
         height: 8px;
         border-radius: 4px;
         background: linear-gradient(to right, #c9b8f5, #89a4f7, #f4a89a, #f5c842);
-    }
-    .legend-labels {
+    }}
+    .legend-labels {{
         display: flex;
         justify-content: space-between;
         font-size: 9px;
         color: #999;
         margin-top: 4px;
-    }
+    }}
+    .legend-count{{
+        font-size: 9px;
+        color: #bbb;
+        margin-top: 5px;
+        text-align: center;
+    }}
 </style>
 <div class="legend-card">
     <div class="legend-bar"></div>
@@ -88,6 +103,8 @@ legend_html = """
         <span>low</span>
         <span>high</span>
     </div>
+    <div class="legend-count">{len(df)} students surveyed</div>
+    <div class="legend-count">last updated: {last_updated}</div>
 </div>
 """
 m.get_root().html.add_child(folium.Element(legend_html))
