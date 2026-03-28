@@ -124,3 +124,37 @@ for _, row in df.iterrows():
 # intensity / weight on the heatmap
 counts = pd.Series(building_rows).value_counts()
 print("counts:\n", counts)
+
+# time window counts
+TIME_COL = "What time of day do you crash the hardest?"
+
+CRASH_WINDOWS = [
+    "Before 10 AM",
+    "10 AM - 12 PM",
+    "12 PM - 2 PM (post-lunch slump)",
+    "2 PM - 5 PM",
+    "Later than 5 PM",
+]
+
+counts_by_window = {}
+for window in CRASH_WINDOWS:
+    window_rows = []
+    for _, row in df.iterrows():
+        time_cell = row.get(TIME_COL, "")
+        building_cell = row.get(BUILDING_COL, "")
+
+        if pd.isna(time_cell) or pd.isna(building_cell):
+            continue
+
+        selected_windows = [w.strip() for w in str(time_cell).split(",")]
+        if window not in selected_windows:
+            continue
+
+        for b in str(building_cell).split(","):
+            match = match_building(b.strip())
+            if match:
+                window_rows.append(match)
+    
+    window_counts = pd.Series(window_rows).value_counts() if window_rows else pd.Series(dtype=int)
+    counts_by_window[window] = window_counts
+    print(f"\n{window}:\n{window_counts}")
