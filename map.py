@@ -244,7 +244,7 @@ timeline_html = f"""
 </style>
 <div class="tl-bar" id="tlBar">
     <div class="tl-labels" id="tlLabels"></div>
-    <div class="tl-allday" id="tlAllDay">All day</div>
+    <div class="tl-allday" id="tlAllDay">All Time</div>
 </div>
 
 <div id="custom-tooltip" style="
