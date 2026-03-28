@@ -99,7 +99,7 @@ legend_html = f"""
 <style>
     .legend-card {{
         position: fixed;
-        bottom: 20px;
+        bottom: 90px;
         left: 20px;
         z-index: 1000;
         background: rgba(255,255,255,0.75);
@@ -153,7 +153,7 @@ credit_html = """
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         font-family: sans-serif;
-        font-size: 10px;
+        font-size: 9.5px;
         color: #345435;
     }
     .credit-card a {
@@ -166,7 +166,7 @@ credit_html = """
     }
 </style>
 <div class="credit-card">
-    made by <a href="https://www.linkedin.com/in/layan-a-4457713a0/?skipRedirect=true" target="_blank">layan al-hamarneh</a>
+    by <a href="https://www.linkedin.com/in/layan-a-4457713a0/?skipRedirect=true" target="_blank">layan al-hamarneh</a>
 </div>
 """
 m.get_root().html.add_child(folium.Element(credit_html))
@@ -218,7 +218,9 @@ timeline_html = f"""
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         padding: 10px 16px;
         font-family: sans-serif;
-        min-width: 320px;
+        min-width: 0;
+        width: 90vw;
+        max-width: 420px;
     }}
     .tl-labels {{
         display: flex;
