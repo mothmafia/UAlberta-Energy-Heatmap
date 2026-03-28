@@ -99,7 +99,7 @@ legend_html = f"""
 <style>
     .legend-card {{
         position: fixed;
-        bottom: 90px;
+        bottom: 24px;
         left: 20px;
         z-index: 1000;
         background: rgba(255,255,255,0.75);
@@ -140,37 +140,6 @@ legend_html = f"""
 """
 m.get_root().html.add_child(folium.Element(legend_html))
 
-# credit hehe
-credit_html = """
-<style>
-    .credit-card {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        background: rgba(255,255,255,0.75);
-        padding: 6px 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        font-family: sans-serif;
-        font-size: 9.5px;
-        color: #345435;
-    }
-    .credit-card a {
-        color: #345435;
-        text-decoration: none;
-        font-weight: 600;
-    }
-    .credit-card a:hover {
-        text-decoration: underline;
-    }
-</style>
-<div class="credit-card">
-    by <a href="https://www.linkedin.com/in/layan-a-4457713a0/?skipRedirect=true" target="_blank">layan al-hamarneh</a>
-</div>
-"""
-m.get_root().html.add_child(folium.Element(credit_html))
-
 heat_data = [
     [BUILDING_COORDS[b][0], BUILDING_COORDS[b][1], count]
     for b, count in counts.items()
@@ -210,7 +179,7 @@ timeline_html = f"""
     .tl-bar {{
         position: fixed;
         bottom: 24px;
-        left: 50%;
+        left: 60%;
         transform: translateX(-50%);
         z-index: 1000;
         background: rgba(255,255,255,0.75);
@@ -221,6 +190,20 @@ timeline_html = f"""
         min-width: 0;
         width: 90vw;
         max-width: 420px;
+    }}
+    .tl-credit {{
+        text-align: center;
+        font-size: 9px;
+        color: #bbb;
+        margin-top: 4px;
+    }}
+    .tl-credit a {{
+        color: #bbb;
+        text-decoration: none;
+        font-weight: 600;
+    }}
+    .tl-credit a:hover {{
+        color: #345435;
     }}
     .tl-labels {{
         display: flex;
@@ -247,6 +230,7 @@ timeline_html = f"""
 <div class="tl-bar" id="tlBar">
     <div class="tl-labels" id="tlLabels"></div>
     <div class="tl-allday" id="tlAllDay">All Time</div>
+    <div class="tl-credit">by <a href="https://www.linkedin.com/in/layan-a-4457713a0/?skipRedirect=true" target="_blank" style="color: #345435; text-decoration: none; font-weight: 600;">layan al-hamarneh</a></div>
 </div>
 
 <div id="custom-tooltip" style="
