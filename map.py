@@ -1,7 +1,27 @@
 import folium
 import pandas as pd
 from folium.plugins import HeatMap
-from heatmap import counts, BUILDING_COORDS, df
+import json
+from heatmap import counts, counts_by_window, BUILDING_COORDS, CRASH_WINDOWS, df
+
+# serialize window data
+window_data_json = json.dumps({w: [
+    [BUILDING_COORDS[b][0], BUILDING_COORDS[b][1], int(c)]
+    for b, c in counts_by_window[w].items()
+    if b in BUILDING_COORDS
+] for w in CRASH_WINDOWS})
+windows_json = json.dumps(CRASH_WINDOWS)
+
+# serialize building counts, per time-window
+window_counts_json = json.dumps({w: {
+    b: int(c)
+    for b, c in counts_by_window[w].items()
+    if b in BUILDING_COORDS
+} for w in CRASH_WINDOWS})
+
+# cleaner timeline labels
+SHORT_LABELS = ["< 10AM", "10AM", "12PM", "2PM", "5PM+"]
+short_labels_json = json.dumps(SHORT_LABELS)
 
 # create map
 m = folium.Map(
@@ -178,6 +198,165 @@ for building, (lat,lng) in BUILDING_COORDS.items():
                 sticky=True,
             ),
         ).add_to(m)
+
+# timeline bar
+timeline_html = f"""
+<style>
+    .tl-bar {{
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background: rgba(255,255,255,0.75);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        padding: 10px 16px;
+        font-family: sans-serif;
+        min-width: 320px;
+    }}
+    .tl-controls {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+    }}
+    .tl-play {{
+        background: none;
+        border: none;
+        color: #345435;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
+    }}
+    .tl-track {{
+        flex: 1;
+        height: 3px;
+        background: #ddd;
+        border-radius: 2px;
+        position: relative;
+    }}
+    .tl-fill {{
+        height: 100%;
+        width: 0%;
+        background: #345435;
+        border-radius: 2px;
+        transition: width 0.4s ease;
+    }}
+    .tl-thumb {{
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #345435;
+        position: absolute;
+        top: 50%;
+        left: 0%;
+        transform: translate(-50%, -50%);
+        transition: left 0.4s ease;
+    }}
+    .tl-labels {{
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }}
+    .tl-slot {{
+        font-size: 10px;
+        color: #888;
+        cursor: pointer;
+        transition: color 0.2s;
+    }}
+    .tl-slot:hover {{ color: #345435; }}
+    .tl-slot.active {{ color: #345435; font-weight: 600;}}
+    .tl-allday {{
+        text-align: center;
+        font-size: 10px;
+        color: #aaa;
+        cursor: pointer;
+        transition: color 0.2s;
+    }}
+    .tl-allday:hover {{ color: #345435; }}
+</style>
+<div class="tl-bar" id="tlBar">
+    <div class="tl-controls">
+        <button class="tl-play" id="tlPlay">&#9654;</button>
+        <div class="tl-track">
+            <div class="tl-fill" id="tlFill"></div>
+            <div class="tl-thumb" id="tlThumb"></div>
+        </div>
+    </div>
+    <div class="tl-labels" id="tlLabels"></div>
+    <div class="tl-allday" id="tlAllDay">All day</div>
+</div>
+
+<script>
+    var WINDOWS = {windows_json};
+    var SHORT_LABELS = {short_labels_json};
+    var WINDOW_DATA = {window_data_json};
+    var currentLayer = null;
+    var activeIdx = -1;
+
+    var slots = document.getElementById("tlLabels");
+    SHORT_LABELS.forEach(function(label, i) {{
+        var btn = document.createElement("div");
+        btn.className = "tl-slot";
+        btn.textContent = label;
+        slots.appendChild(btn);
+    }});
+
+    setTimeout(function() {{
+        var map = Object.values(window).find(function(v) {{
+            return v && v._leaflet_id && v.addLayer;
+        }});
+
+        var baseLayer = null;
+        map.eachLayer(function(layer) {{
+            if (layer.options && layer.options.gradient) {{
+                baseLayer = layer;
+            }}
+        }});
+
+        function showWindow(idx) {{
+            if (currentLayer) {{
+                map.removeLayer(currentLayer);
+                currentLayer = null;
+            }}
+
+            if (idx !== -1) {{
+                if (baseLayer) map.removeLayer(baseLayer);
+
+                var pts = WINDOW_DATA[WINDOWS[idx]];
+                if (pts && pts.length > 0) {{
+                    currentLayer = L.heatLayer(pts, {{
+                        radius: 50, blur: 40, minOpacity: 0.3,
+                        gradient: {{0.0: "#C9B8F5", 0.3: "#89A4F7", 0.6: "#F4A89A", 1.0: "#F5C842"}}
+                    }}).addTo(map);
+                }}
+            }} else {{
+                if (baseLayer) map.addLayer(baseLayer);
+            }}
+
+            activeIdx = idx;
+            document.querySelectorAll(".tl-slot").forEach(function(btn, i) {{
+                btn.classList.toggle("active", i === idx);
+            }});
+        }}
+
+        document.querySelectorAll(".tl-slot").forEach(function(btn, i) {{
+            btn.onclick = function() {{ showWindow(i); }};
+        }});
+
+        var allDay = document.getElementById("tlAllDay");
+        if (allDay) {{
+            allDay.onclick = function() {{
+                showWindow(-1);
+            }};
+        }}
+
+    }}, 500);
+</script>
+"""
+m.get_root().html.add_child(folium.Element(timeline_html))
 
 m.save("campus_heatmap.html")
 print("saved")
