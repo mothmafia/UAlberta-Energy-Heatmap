@@ -14,10 +14,21 @@ windows_json = json.dumps(CRASH_WINDOWS)
 
 # serialize building counts, per time-window
 window_counts_json = json.dumps({w: {
-    b: int(c)
+    b.strip().lower(): int(c)
     for b, c in counts_by_window[w].items()
     if b in BUILDING_COORDS
 } for w in CRASH_WINDOWS})
+
+total_counts_json = json.dumps({
+    b.strip().lower(): int(c)
+    for b, c, in counts.items()
+})
+
+coords_to_building_json = json.dumps({
+    f"{lat}_{lng}": building
+    for building, (lat, lng) in BUILDING_COORDS.items()
+    if counts.get(building, 0) > 0
+})
 
 # cleaner timeline labels
 SHORT_LABELS = ["< 10AM", "10AM", "12PM", "2PM", "5PM+"]
@@ -179,24 +190,18 @@ HeatMap(
 ).add_to(m)
 
 # markers with hover tooltips
-for building, (lat,lng) in BUILDING_COORDS.items():
+for building, (lat, lng) in BUILDING_COORDS.items():
     count = counts.get(building, 0)
     if count > 0:
         folium.CircleMarker(
-            location = [lat, lng],
-            radius = 6,
-            color = "white",
-            weight = 2,
-            fill = True,
-            fill_color = "rgba(255,255,255,0.15)",
-            fill_opacity = 1,
-            tooltip = folium.Tooltip(
-                f"<div style='font-family: sans-serif; font-size: 13px; padding: 6px 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);'>"
-                f"<b style='color: #345435;'>{building}</b><br>"
-                f"<span style='color: #888;'>{count} responses</span>"
-                f"</div>",
-                sticky=True,
-            ),
+            location=[lat, lng],
+            radius=6,
+            color="white",
+            weight=2,
+            fill=True,
+            fill_color="rgba(255,255,255,0.15)",
+            fill_opacity=1,
+            name=building,
         ).add_to(m)
 
 # timeline bar
@@ -214,46 +219,6 @@ timeline_html = f"""
         padding: 10px 16px;
         font-family: sans-serif;
         min-width: 320px;
-    }}
-    .tl-controls {{
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 6px;
-    }}
-    .tl-play {{
-        background: none;
-        border: none;
-        color: #345435;
-        font-size: 14px;
-        cursor: pointer;
-        padding: 0;
-        flex-shrink: 0;
-    }}
-    .tl-track {{
-        flex: 1;
-        height: 3px;
-        background: #ddd;
-        border-radius: 2px;
-        position: relative;
-    }}
-    .tl-fill {{
-        height: 100%;
-        width: 0%;
-        background: #345435;
-        border-radius: 2px;
-        transition: width 0.4s ease;
-    }}
-    .tl-thumb {{
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #345435;
-        position: absolute;
-        top: 50%;
-        left: 0%;
-        transform: translate(-50%, -50%);
-        transition: left 0.4s ease;
     }}
     .tl-labels {{
         display: flex;
@@ -278,21 +243,33 @@ timeline_html = f"""
     .tl-allday:hover {{ color: #345435; }}
 </style>
 <div class="tl-bar" id="tlBar">
-    <div class="tl-controls">
-        <button class="tl-play" id="tlPlay">&#9654;</button>
-        <div class="tl-track">
-            <div class="tl-fill" id="tlFill"></div>
-            <div class="tl-thumb" id="tlThumb"></div>
-        </div>
-    </div>
     <div class="tl-labels" id="tlLabels"></div>
     <div class="tl-allday" id="tlAllDay">All day</div>
+</div>
+
+<div id="custom-tooltip" style="
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 6px 10px;
+    font-family: sans-serif;
+    font-size: 13px;
+    pointer-events: none;
+">
+    <b id="tt-building" style="color: #345435;"></b><br>
+    <span id="tt-count" style="color: #888;"></span>
 </div>
 
 <script>
     var WINDOWS = {windows_json};
     var SHORT_LABELS = {short_labels_json};
     var WINDOW_DATA = {window_data_json};
+    var WINDOW_COUNTS = {window_counts_json};
+    var TOTAL_COUNTS = {total_counts_json};
+    var COORDS_TO_BUILDING = {coords_to_building_json};
     var currentLayer = null;
     var activeIdx = -1;
 
@@ -315,6 +292,38 @@ timeline_html = f"""
                 baseLayer = layer;
             }}
         }});
+
+        // custom tooltips because FOLIUM SUCKS
+        var tooltip = document.getElementById("custom-tooltip");
+        var ttBuilding = document.getElementById("tt-building");
+        var ttCount = document.getElementById("tt-count");
+
+        map.eachLayer(function(layer) {{
+            if (layer._latlng) {{
+                var key = layer._latlng.lat + "_" + layer._latlng.lng;
+                var building = COORDS_TO_BUILDING[key];
+                if (building) {{
+                    layer.on("mouseover", function(e) {{
+                        var buildingKey = building.trim().toLowerCase();
+                        var count = activeIdx === -1
+                            ? TOTAL_COUNTS[buildingKey]
+                            : (WINDOW_COUNTS[WINDOWS[activeIdx]][buildingKey] || 0);
+                    ttBuilding.textContent = building;
+                    ttCount.textContent = count + " responses";
+                    tooltip.style.display = "block";
+                    tooltip.style.left = e.originalEvent.clientX + 12 + "px";
+                    tooltip.style.top = e.originalEvent.clientY + 12 + "px";
+                }});
+                layer.on("mousemove", function(e) {{
+                    tooltip.style.left = e.originalEvent.clientX + 12 + "px";
+                    tooltip.style.top = e.originalEvent.clientY + 12 + "px";
+                }});
+                layer.on("mouseout", function() {{
+                    tooltip.style.display = "none";
+                }});
+            }}
+        }}
+    }});
 
         function showWindow(idx) {{
             if (currentLayer) {{
@@ -340,6 +349,17 @@ timeline_html = f"""
             document.querySelectorAll(".tl-slot").forEach(function(btn, i) {{
                 btn.classList.toggle("active", i === idx);
             }});
+
+            // tooltips show window counts
+            var counts = idx === -1 ? null : WINDOW_COUNTS[WINDOWS[idx]];
+            document.querySelectorAll(".marker-tip").forEach(function(tip) {{
+                var building = tip.getAttribute("data-building").trim().toLowerCase();
+                var countEl = tip.querySelector(".marker-count");
+                if (countEl) {{
+                    var count = counts ? (counts[building] || 0) : TOTAL_COUNTS[building];
+                    countEl.textContent = count + " responses";
+                }}
+            }});
         }}
 
         document.querySelectorAll(".tl-slot").forEach(function(btn, i) {{
@@ -353,7 +373,7 @@ timeline_html = f"""
             }};
         }}
 
-    }}, 500);
+    }}, 1000);
 </script>
 """
 m.get_root().html.add_child(folium.Element(timeline_html))
