@@ -120,6 +120,7 @@ legend_html = f"""
         height: 8px;
         border-radius: 4px;
         background: linear-gradient(to right, #c9b8f5, #89a4f7, #f4a89a, #f5c842);
+        margin: 0 auto;
     }}
     .legend-labels {{
         display: flex;
