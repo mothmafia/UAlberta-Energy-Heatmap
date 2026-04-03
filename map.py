@@ -108,6 +108,9 @@ legend_html = f"""
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         font-family: sans-serif;
+        overflow: hidden;
+        transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
     }}
     .legend-bar {{
         width: 120px;
@@ -128,22 +131,68 @@ legend_html = f"""
         margin-top: 5px;
         text-align: center;
     }}
-    @media (max-width: 670px) {{
+    .legend-stats {{
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(0,0,0,0.06);
+        font-size: 9px;
+        color: #bbb;
+    }}
+    @media (max-width: 695px) {{
         .legend-card {{
             bottom: 100px;
             left: 10px;
         }}
     }}
 </style>
-<div class="legend-card">
-    <div class="legend-bar"></div>
-    <div class="legend-labels">
+<div class="legend-card" id="legendCard">
+    <div id="legendBase">
+        <div class="legend-bar"></div>
+        <div class="legend-labels">
         <span>low</span>
         <span>high</span>
     </div>
-    <div class="legend-count">{len(df)} students surveyed</div>
-    <div class="legend-count">last updated: {last_updated}</div>
+        <div class="legend-count">{len(df)} students surveyed</div>
+        <div class="legend-count">last updated: {last_updated}</div>
+    </div>
+    <div class="legend-stats" id="legendStats">
+        <div>top crash spots: placeholder</div>
+        <div>X% drink energy drinks regularly</div>
+    </div>
 </div>
+
+<script>
+    (function() {{
+        var card = document.getElementById("legendCard");
+        var collapseTimer = null;
+
+        function getCollapsedHeight() {{
+            return document.getElementById("legendBase").scrollHeight + 16;
+        }}
+
+        function getExpandedHeight() {{
+            return card.scrollHeight;
+        }}
+
+        window.addEventListener("load", function() {{
+            card.style.height = getCollapsedHeight() + "px";
+        }});
+
+        card.addEventListener("mouseenter", function() {{
+            if (collapseTimer) {{
+                clearTimeout(collapseTimer); 
+                collapseTimer = null;
+            }}
+            card.style.height = getExpandedHeight() + "px";
+        }});
+
+        card.addEventListener("mouseleave", function() {{
+            collapseTimer = setTimeout(function() {{
+                card.style.height = getCollapsedHeight() + "px";
+            }}, 2000);
+        }});
+    }})();
+</script>
 """
 m.get_root().html.add_child(folium.Element(legend_html))
 
@@ -232,7 +281,7 @@ timeline_html = f"""
         transition: color 0.2s;
     }}
     .tl-allday:hover {{ color: #345435; }}
-    @media (max-width: 670px) {{
+    @media (max-width: 695px) {{
         .tl-bar {{
             left: 50%;
             bottom: 24px;
@@ -268,7 +317,7 @@ timeline_html = f"""
     .credit a:hover {{
         color: #223823;
     }}
-    @media (max-width: 670px) {{
+    @media (max-width: 695px) {{
         .credit {{
             display: none;
         }}
