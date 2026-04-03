@@ -4,10 +4,12 @@ A visualized heatmap of where (and when) UAlberta students crash the hardest on 
 
 ## How it works
 Survey responses are collected via Google Forms and pulled live into a Python script.
+
 Building names are parsed, matched, and geocoded automatically.
 Response counts per building are visualized as a heatmap overlay on an interactive map of campus.
-The timeline at the bottom lets you filter by time of day to see how crash patterns shift throughout the day.
 
+The timeline at the bottom lets you filter by time of day to see how crash patterns shift throughout the day.
+The timeline lets you filter by time, hovering over the legend reveals live stats that update with the selected time window: top crash spots and energy drink usage.
 
 ## Stack
 - Python, Pandas, Folium
