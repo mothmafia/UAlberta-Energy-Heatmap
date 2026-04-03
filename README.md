@@ -1,6 +1,6 @@
 # UAlberta-Energy-Heatmap
 A visualized heatmap of where (and when) UAlberta students crash the hardest on campus.
-
+[💤 Fill out the survey!](https://forms.gle/C58hYM7ikfBbvP5KA)
 
 ## How it works
 Survey responses are collected via Google Forms and pulled live into a Python script.
