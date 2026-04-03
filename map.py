@@ -69,6 +69,7 @@ title_html = """
         font-family: sans-serif;
         text-align: center;
         cursor: pointer;
+        white-space: nowrap;
         animation: welcomeSlide 3s cubic-bezier(0.4, 0, 0.2, 1);
         transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -127,6 +128,12 @@ legend_html = f"""
         margin-top: 5px;
         text-align: center;
     }}
+    @media (max-width: 400px) {{
+        .legend-card {{
+            bottom: 90px;
+            left: 10px;
+        }}
+    }}
 </style>
 <div class="legend-card">
     <div class="legend-bar"></div>
@@ -179,7 +186,7 @@ timeline_html = f"""
     .tl-bar {{
         position: fixed;
         bottom: 24px;
-        left: 60%;
+        left: 50%;
         transform: translateX(-50%);
         z-index: 1000;
         background: rgba(255,255,255,0.75);
@@ -187,9 +194,8 @@ timeline_html = f"""
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         padding: 10px 16px;
         font-family: sans-serif;
-        min-width: 0;
-        width: 90vw;
-        max-width: 420px;
+        width: clamp(200px, 50vw, 420px);
+        box-sizing: border-box;
     }}
     .tl-credit {{
         text-align: center;
@@ -226,11 +232,51 @@ timeline_html = f"""
         transition: color 0.2s;
     }}
     .tl-allday:hover {{ color: #345435; }}
+    @media (max-width: 400px) {{
+        .tl-bar {{
+            left: 50%;
+            bottom: 24px;
+            width: calc(100vw - 32px);
+        }}
+    }}
 </style>
 <div class="tl-bar" id="tlBar">
     <div class="tl-labels" id="tlLabels"></div>
     <div class="tl-allday" id="tlAllDay">All Time</div>
-    <div class="tl-credit">by <a href="https://www.linkedin.com/in/layan-a-4457713a0/?skipRedirect=true" target="_blank" style="color: #345435; text-decoration: none; font-weight: 600;">layan al-hamarneh</a></div>
+</div>
+
+<style>
+    .credit {{
+        position: fixed;
+        bottom: 24px;
+        right: 20px;
+        z-index: 1000;
+        background: rgba(255,255,255,0.75);
+        padding: 6px 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        font-family: sans-serif;
+        font-size: 9px;
+        color: #bbb;
+        white-space: nowrap;
+    }}
+    .credit a {{
+        color: #345435;
+        text-decoration: none;
+        font-weight: 600;
+    }}
+    .credit a:hover {{
+        color: #223823;
+    }}
+    @media (max-width: 400px) {{
+        .credit {{
+            bottom: 90px;
+            right: 10px;
+        }}
+    }}
+</style>
+<div class="credit">
+    made by <a href="https://www.linkedin.com/in/layan-a-4457713a0/" target="_blank">layan al-hamarneh</a>
 </div>
 
 <div id="custom-tooltip" style="
