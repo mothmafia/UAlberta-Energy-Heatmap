@@ -128,9 +128,9 @@ legend_html = f"""
         margin-top: 5px;
         text-align: center;
     }}
-    @media (max-width: 400px) {{
+    @media (max-width: 670px) {{
         .legend-card {{
-            bottom: 90px;
+            bottom: 100px;
             left: 10px;
         }}
     }}
@@ -232,7 +232,7 @@ timeline_html = f"""
         transition: color 0.2s;
     }}
     .tl-allday:hover {{ color: #345435; }}
-    @media (max-width: 400px) {{
+    @media (max-width: 670px) {{
         .tl-bar {{
             left: 50%;
             bottom: 24px;
@@ -268,10 +268,9 @@ timeline_html = f"""
     .credit a:hover {{
         color: #223823;
     }}
-    @media (max-width: 400px) {{
+    @media (max-width: 670px) {{
         .credit {{
-            bottom: 90px;
-            right: 10px;
+            display: none;
         }}
     }}
 </style>
