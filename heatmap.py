@@ -158,3 +158,31 @@ for window in CRASH_WINDOWS:
     window_counts = pd.Series(window_rows).value_counts() if window_rows else pd.Series(dtype=int)
     counts_by_window[window] = window_counts
     print(f"\n{window}:\n{window_counts}")
+
+    # energy drink % per window
+    ENERGY_COL = "How often do you reach for an energy drink while on campus?"
+    REGULAR_VALS = {"Daily", "A few times a week"}
+
+    energy_pct_by_window = {}
+    for window in CRASH_WINDOWS:
+        window_rows = []
+        for _, row in df.iterrows():
+            time_cell = row.get(TIME_COL, "")
+            if pd.isna(time_cell):
+                continue
+            selected_windows = [w.strip() for w in str(time_cell).split(",")]
+            if window not in selected_windows:
+                continue
+            window_rows.append(row)
+
+            if window_rows:
+                window_df = pd.DataFrame(window_rows)
+                regular = window_df[ENERGY_COL].isin(REGULAR_VALS).sum()
+                pct = round((regular / len(window_df)) * 100)
+            else:
+                pct = 0
+            energy_pct_by_window[window] = pct
+
+        # all time energy drink %
+        total_regular = df[ENERGY_COL].isin(REGULAR_VALS).sum()
+        energy_pct_total = round((total_regular / len(df)) * 100)

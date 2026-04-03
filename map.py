@@ -2,7 +2,7 @@ import folium
 import pandas as pd
 from folium.plugins import HeatMap
 import json
-from heatmap import counts, counts_by_window, BUILDING_COORDS, CRASH_WINDOWS, df
+from heatmap import counts, counts_by_window, BUILDING_COORDS, CRASH_WINDOWS, df, energy_pct_by_window, energy_pct_total
 
 # serialize window data
 window_data_json = json.dumps({w: [
@@ -29,6 +29,9 @@ coords_to_building_json = json.dumps({
     for building, (lat, lng) in BUILDING_COORDS.items()
     if counts.get(building, 0) > 0
 })
+# serialize energy data
+energy_pct_json = json.dumps(energy_pct_by_window)
+energy_pct_total_json = json.dumps(energy_pct_total)
 
 # cleaner timeline labels
 SHORT_LABELS = ["< 10AM", "10AM", "12PM", "2PM", "5PM+"]
@@ -350,6 +353,8 @@ timeline_html = f"""
     var WINDOW_COUNTS = {window_counts_json};
     var TOTAL_COUNTS = {total_counts_json};
     var COORDS_TO_BUILDING = {coords_to_building_json};
+    var ENERGY_PCT = {energy_pct_json};
+    var ENERGY_PCT_TOTAL = {energy_pct_total_json};
     var currentLayer = null;
     var activeIdx = -1;
 
@@ -426,6 +431,27 @@ timeline_html = f"""
             }}
 
             activeIdx = idx;
+            var topBuildings, energyPct;
+
+            if (idx === -1) {{
+                // all time
+                var sorted = Object.entries(TOTAL_COUNTS).sort((a, b) => b[1] - a[1]);
+                topBuildings = sorted.slice(0, 2).map(e => e[0]).join(", ");
+                energyPct = ENERGY_PCT_TOTAL;
+            }} else {{
+                // by window
+                var windowCounts = WINDOW_COUNTS[WINDOWS[idx]] || {{}};
+                var sorted = Object.entries(windowCounts).sort((a, b) => b[1] - a[1]);
+                topBuildings = sorted.slice(0, 2).map(e => e[0]).join(", ");
+                energyPct = ENERGY_PCT[WINDOWS[idx]] || 0;
+            }}
+
+            var stats = document.getElementById("legendStats");
+            if (stats) {{
+                stats.children[0].textContent = "top crash spots: " + topBuildings;
+                stats.children[1].textContent = energyPct + "% drink energy drinks regularly";
+            }}
+
             document.querySelectorAll(".tl-slot").forEach(function(btn, i) {{
                 btn.classList.toggle("active", i === idx);
             }});
@@ -453,6 +479,7 @@ timeline_html = f"""
             }};
         }}
 
+        showWindow(-1);
     }}, 1000);
 </script>
 """
@@ -460,3 +487,5 @@ m.get_root().html.add_child(folium.Element(timeline_html))
 
 m.save("campus_heatmap.html")
 print("saved")
+print(df.columns.tolist())
+print(df['What time of day do you crash the hardest?'].unique())
